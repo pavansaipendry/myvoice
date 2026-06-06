@@ -33,8 +33,15 @@ mic ──▶ record (auto/while-held) ──▶ Whisper (local) ──▶ clean
 
 **1. Hold-to-talk daemon (recommended)** — start once, then just hold a key:
 ```bash
-python3 daemon.py            # leave running; hold Right Option to talk
+python3 daemon.py                 # leave running; hold Right Option to talk
+python3 daemon.py --mic MacBook   # record from the built-in mic (see tip below)
 ```
+While you hold the key it **auto-pauses whatever's playing** (YouTube/Chrome,
+VLC, Spotify, Music — via the system media key) and resumes on release.
+
+> **Tip:** if you wear AirPods, pass `--mic MacBook`. Using the AirPods *mic*
+> forces them into low-quality "call mode" (causing a volume jump + worse audio);
+> recording from the built-in mic keeps AirPods in hi-fi for playback.
 
 **2. `/myvoice` Claude Code slash command** — speak, transcript goes straight to
 Claude (auto-stops on silence):
@@ -76,6 +83,7 @@ then `launchctl load ~/Library/LaunchAgents/com.myvoice.daemon.plist`.
 
 ## Options
 - `--model tiny.en|base.en|small.en|medium.en` — speed vs accuracy (default `small.en`).
+- Daemon: `--mic <name substring>` pick input device · `--no-pause` don't pause media.
 - Recorder: `--silence`, `--threshold`, `--max` to tune auto-stop.
 
 ## Caveats
