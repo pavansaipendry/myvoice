@@ -129,9 +129,10 @@ def main():
     p.add_argument("--model", default="small.en")
     p.add_argument("--no-pause", action="store_true",
                    help="don't auto-pause media while recording")
-    p.add_argument("--mic", default=None,
-                   help="substring of input device name to use (e.g. 'MacBook'); "
-                        "default = system default input")
+    p.add_argument("--mic", default="MacBook",
+                   help="substring of input device name to use (default 'MacBook' "
+                        "= built-in mic; falls back to system default if not found). "
+                        "Pass --mic '' to force the system default input.")
     args = p.parse_args()
 
     device = None
