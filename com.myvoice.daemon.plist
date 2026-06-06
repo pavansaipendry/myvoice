@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Optional: auto-start the myvoice daemon at login.
+     1. Replace USERNAME below with your macOS username.
+     2. cp this file to ~/Library/LaunchAgents/
+     3. launchctl load ~/Library/LaunchAgents/com.myvoice.daemon.plist
+     (Input Monitoring + Accessibility must still be granted.) -->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.myvoice.daemon</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/bin/python3</string>
+    <string>/Users/USERNAME/.claude/myvoice/daemon.py</string>
+  </array>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>StandardErrorPath</key><string>/tmp/myvoice.err</string>
+  <key>StandardOutPath</key><string>/tmp/myvoice.out</string>
+</dict>
+</plist>
