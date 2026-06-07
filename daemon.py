@@ -31,6 +31,38 @@ from pynput import keyboard
 
 from record_transcribe import SR, _resample_to_16k, cleanup
 
+def is_audio_playing():
+    """True if the default output device is currently playing audio (any app —
+    Chrome, VLC, Spotify…), via CoreAudio. None if it can't be determined.
+    Lets us avoid the media-key toggle *starting* music when nothing is playing."""
+    try:
+        import ctypes
+        import ctypes.util
+
+        fourcc = lambda s: int.from_bytes(s.encode(), "big")
+        ca = ctypes.CDLL(ctypes.util.find_library("CoreAudio"))
+        ca.AudioObjectGetPropertyData.restype = ctypes.c_int32
+
+        class Addr(ctypes.Structure):
+            _fields_ = [("sel", ctypes.c_uint32), ("scope", ctypes.c_uint32),
+                        ("elem", ctypes.c_uint32)]
+
+        SYS, SCOPE = 1, fourcc("glob")
+        a1 = Addr(fourcc("dOut"), SCOPE, 0)
+        dev, sz = ctypes.c_uint32(0), ctypes.c_uint32(4)
+        if ca.AudioObjectGetPropertyData(SYS, ctypes.byref(a1), 0, None,
+                                         ctypes.byref(sz), ctypes.byref(dev)) != 0:
+            return None
+        a2 = Addr(fourcc("gone"), SCOPE, 0)  # kAudioDevicePropertyDeviceIsRunningSomewhere
+        run, sz2 = ctypes.c_uint32(0), ctypes.c_uint32(4)
+        if ca.AudioObjectGetPropertyData(dev.value, ctypes.byref(a2), 0, None,
+                                         ctypes.byref(sz2), ctypes.byref(run)) != 0:
+            return None
+        return bool(run.value)
+    except Exception:
+        return None
+
+
 def media_toggle(kb):
     """Tap the system Play/Pause media key. This controls whatever is currently
     'now playing' — a Chrome/YouTube tab, VLC, Spotify, Apple Music, etc. — so it
@@ -70,7 +102,10 @@ class Daemon:
     def start(self):
         if self.recording:
             return
-        self.paused = media_toggle(self.kb) if self.auto_pause else False  # hush media
+        # only pause if something is actually playing (else the toggle would
+        # *start* music — the bug). is_audio_playing() None/False => don't touch.
+        self.paused = bool(self.auto_pause and is_audio_playing()
+                           and media_toggle(self.kb))
         self.frames = []
         self.recording = True
         self.stream = self.sd.InputStream(samplerate=self.in_sr, channels=1,
